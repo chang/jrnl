@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Page Title</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css">
+  <link rel="stylesheet" type="text/css" media="screen" href="{{ url_for('static', filename='main.css') }}" />
+</head>
+<body>
+  {{ config['_hero_template']|safe }}
+
+  <div class="container">
+    <div class="content entry">
+
+      <h1 class="title has-text-grey-dark is-4 date-title">
+        {{ date }}
+      </h1>
+      <h1 class="subtitle has-text-grey is-5 has-text-weight-light" id="entry-subtitle">
+        {{ title }}
+      </h1>
+
+      {% for paragraph in body_paragraphs %}
+      <p>{{ paragraph|safe }}</p>
+      {% endfor %}
+
+      <div class="tags">
+        {% for tag in tags %}
+        {{ tag|safe }}
+        {% endfor %}
+      </div>
+
+      <div class="tags">
+        <div class="tags has-addons">
+          <a class="tag is-light">Words</a>
+          <a class="tag is-dark">{{ num_words }}</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

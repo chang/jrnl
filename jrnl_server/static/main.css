@@ -1,0 +1,14 @@
+body {
+    background-color: white;
+    font-family: 'Lato', serif;
+}
+
+.entry {
+    margin-top: 1.5em;
+    margin-left: 1.5em;
+    margin-right: 1.5em;
+}
+
+#entry-subtitle {
+    padding-top: 0.25em;
+}

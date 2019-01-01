@@ -60,9 +60,12 @@ class Entry:
         return crayons.red(self.title.strip())
 
     @property
+    def formatted_date(self):
+        return self.date.strftime(self.date_format_string)
+
+    @property
     def pretty_date(self):
-        date_str = self.date.strftime(self.date_format_string)
-        return crayons.green(date_str, bold=True)
+        return crayons.green(self.formatted_date, bold=True)
 
     def _wrap_line(self, line):
         if not line:

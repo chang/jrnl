@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Page Title</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css">
+  <link rel="stylesheet" type="text/css" media="screen" href="{{ url_for('static', filename='main.css') }}" />
+</head>
+<body>
+
+  {{ config['_hero_template']|safe }}
+
+  <div class="section" style="margin-top: 1em">
+    <nav class="level">
+      <div class="level-item has-text-centered">
+        <div>
+          <p class="heading">Entries</p>
+          <p class="title">{{ num_entries }}</p>
+        </div>
+      </div>
+      <div class="level-item has-text-centered">
+        <div>
+          <p class="heading">Words</p>
+          <p class="title">{{ num_words }}</p>
+        </div>
+      </div>
+      <div class="level-item has-text-centered">
+        <div>
+          <p class="heading">Tags</p>
+          <p class="title">{{ num_tags }}</p>
+        </div>
+      </div>
+    </nav>
+  </div>
+
+  <div class="section">
+    <div class="container">
+      <h1 class="title is-5">Tag Counts</h1>
+      {% for tag in tag_stats %}
+      {{ tag|safe }}
+      {% endfor %}
+    </div>
+  </div>
+
+</body>
+</html>
