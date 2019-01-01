@@ -2,12 +2,18 @@
 # encoding: utf-8
 
 from __future__ import unicode_literals
+import logging
 import re
 import textwrap
 from datetime import datetime
 
+import crayons
+
 
 class Entry:
+    # Number of spaces to use for indenting journal entries.
+    INDENTATION_LEVEL = 2
+
     def __init__(self, journal, date=None, title="", body="", starred=False):
         self.journal = journal  # Reference to journal mainly to access it's config
         self.date = date or datetime.now()
@@ -41,22 +47,55 @@ class Entry:
             body=self.body.rstrip("\n ")
         )
 
-    def pprint(self, short=False):
-        """Returns a pretty-printed version of the entry.
-        If short is true, only print the title."""
-        date_str = self.date.strftime(self.journal.config['timeformat'])
-        if not short and self.journal.config['linewrap']:
-            title = textwrap.fill(date_str + " " + self.title, self.journal.config['linewrap'])
-            body = "\n".join([
-                    textwrap.fill((line + " ") if (len(line) == 0) else line,
-                        self.journal.config['linewrap'],
-                        initial_indent="| ",
-                        subsequent_indent="| ",
-                        drop_whitespace=False)
-                    for line in self.body.rstrip(" \n").splitlines()
-                ])
+    @property
+    def date_format_string(self):
+        if 'prettytimeformat' in self.journal.config:
+            return self.journal.config['prettytimeformat']
         else:
-            title = date_str + " " + self.title.rstrip("\n ")
+            logging.debug("'prettytimeformat' not found in .jrnl_config. Defaulting to 'timeformat'.")
+            return self.journal.config['timeformat']
+
+    @property
+    def pretty_title(self):
+        return crayons.red(self.title.strip())
+
+    @property
+    def pretty_date(self):
+        date_str = self.date.strftime(self.date_format_string)
+        return crayons.green(date_str, bold=True)
+
+    def _wrap_line(self, line):
+        if not line:
+            return " "
+
+        initial_indent = self.INDENTATION_LEVEL * " "
+        is_bullet_point = line.startswith("- ")
+        if is_bullet_point:
+            subsequent_indent = "  " + initial_indent
+        else:
+            subsequent_indent = initial_indent
+
+        wrapped_line = textwrap.fill(
+            line,
+            initial_indent=initial_indent,
+            subsequent_indent=subsequent_indent,
+            drop_whitespace=True,
+        )
+        return wrapped_line
+
+    def pprint(self, short=False):
+        """Return a pretty-printed version of the entry.
+
+        Args:
+            short (bool): If True, only print the title.
+        """
+        if not short and self.journal.config['linewrap']:
+            title = textwrap.fill(self.pretty_date + " " + self.pretty_title, self.journal.config['linewrap'])
+            lines = self.body.rstrip(" \n").splitlines()
+            wrapped_lines = [self._wrap_line(l) for l in lines]
+            body = "\n".join(wrapped_lines)
+        else:
+            title = "{date} {title}".format(date=self.pretty_date, title=self.pretty_title)
             body = self.body.rstrip("\n ")
 
         # Suppress bodies that are just blanks and new lines.
