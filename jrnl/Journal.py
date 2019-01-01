@@ -153,7 +153,7 @@ class Journal(object):
 
     def pprint(self, short=False):
         """Prettyprints the journal's entries"""
-        sep = "\n"
+        sep = self.config['entry_separator'] if 'entry_separator' in self.config else '\n'
         pp = sep.join([e.pprint(short=short) for e in self.entries])
         if self.config['highlight']:  # highlight tags
             if self.search_tags:
