@@ -111,7 +111,7 @@ def load_and_fix_json(json_path):
         # Attempt to fix missing ,
         json_str = re.sub(r"([^{,]) *\n *(\")", r"\1,\n \2", json_str)
         try:
-            log.debug('Attempting to reload automatically fixed configuration file %s', 
+            log.debug('Attempting to reload automatically fixed configuration file %s',
                     json_str)
             config = json.loads(json_str)
             with open(json_path, 'w') as f:
@@ -131,7 +131,8 @@ def get_text_from_editor(config, template=""):
     with codecs.open(tmpfile, 'w', "utf-8") as f:
         if template:
             f.write(template)
-    subprocess.call(config['editor'].split() + [tmpfile])
+    editor_command = '{editor} {tmpfile}'.format(editor=config['editor'], tmpfile=tmpfile)
+    subprocess.call(editor_command, shell=True)
     with codecs.open(tmpfile, "r", "utf-8") as f:
         raw = f.read()
     os.remove(tmpfile)
