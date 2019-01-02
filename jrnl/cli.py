@@ -49,7 +49,7 @@ def parse_args(args=None):
     exporting.add_argument('-o', metavar='OUTPUT', dest='output', help='Optionally specifies output file when using --export. If OUTPUT is a directory, exports each entry into an individual file instead.', default=False, const=None)
     exporting.add_argument('--encrypt', metavar='FILENAME', dest='encrypt', help='Encrypts your existing journal with a new password', nargs='?', default=False, const=None)
     exporting.add_argument('--decrypt', metavar='FILENAME', dest='decrypt', help='Decrypts your journal and stores it in plain text', nargs='?', default=False, const=None)
-    exporting.add_argument('--edit', dest='edit', help='Opens your editor to edit the selected entries.', action="store_true")
+    exporting.add_argument('-e', '--edit', dest='edit', help='Opens your editor to edit the selected entries.', action="store_true")
 
     return parser.parse_args(args)
 
