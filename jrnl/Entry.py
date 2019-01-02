@@ -96,7 +96,7 @@ class Entry:
             title = textwrap.fill(self.pretty_date + " " + self.pretty_title, self.journal.config['linewrap'])
             lines = self.body.rstrip(" \n").splitlines()
             # Remove newline between title and body.
-            if not lines[0]:
+            if lines and not lines[0]:
                 lines = lines[1:]
             wrapped_lines = [self._wrap_line(l) for l in lines]
             body = "\n".join(wrapped_lines)
