@@ -1,54 +1,47 @@
-import flask
+import logging
 
+import flask
 import jrnl
 
-from conf import CONFIG_PATH, JOURNAL_NAME
+from conf import JRNL_CONFIG
 from elements import HTMLTag
+from helpers import load_journal, get_day_with_suffix
 
 
-def load_journal():
-    config = jrnl.util.load_and_fix_json(CONFIG_PATH)
-    journal_config = config['journals'].get(JOURNAL_NAME)
-    config.update(journal_config)
-    journal = jrnl.Journal.Journal(journal_name=JOURNAL_NAME, **config)
-    journal.open()
-    return journal
-
-
-def _get_day_with_suffix(day):
-    """
-    Returns:
-        (day, suffix): (TUPLE[STR, STR])
-    """
-    assert isinstance(day, int) and 0 < day <= 31
-    SUFFIXES = {
-        1: 'st',
-        2: 'nd',
-        3: 'rd',
-        4: 'th',
-        21: 'st',
-        22: 'nd',
-        23: 'rd',
-        24: 'th',
-        31: 'st',
-    }
-    suffix_day = day
-    while True:
-        if suffix_day in SUFFIXES:
-            suffix = SUFFIXES[suffix_day]
-            return (str(day), suffix)
-        suffix_day -= 1
+class NoEntryError(Exception):
+    pass
 
 
 class JournalWrapper:
 
     def __init__(self):
+        self._load_journal()
+
+    def _load_journal(self):
         self.journal = load_journal()
         self.journal_dict = self.make_journal_dict(self.journal)
+        self._hash = self._get_journal_hash()
 
     def get_entry(self, date):
         # TODO: Do some input validation here.
-        return self.journal_dict[date]
+        try:
+            return self.journal_dict[date]
+        except KeyError as e:
+            msg = f'Attempted to access date with no entry: "{date}"'
+            logging.warning(msg)
+            raise NoEntryError(msg)
+
+    def _get_journal_hash(self, journal_path=JRNL_CONFIG['journal']):
+        # Get the file hash of journal.txt
+        # TODO: Do something smarter than reading the whole file.
+        with open(journal_path, 'r') as fp:
+            return hash(fp.read())
+
+    def reload_if_changed(self):
+        current_hash = self._get_journal_hash()
+        if not self._hash == current_hash:
+            print('Journal file hash changed. Reloading.')
+            self._load_journal()
 
     @property
     def entries(self):
@@ -70,7 +63,8 @@ class JournalWrapper:
         for date_str, entry in self.journal_dict.items():
             entry_name = f'{date_str}: {entry.title}'
             entry_link = f'entry/{date_str}'
-            el = (entry_name, entry_link)
+            parsed_entry = EntryWrapper(entry)
+            el = (entry_name, entry_link, parsed_entry)
             entry_links.append(el)
         # Do we need to sort this first? No guarantee of ordering in a dict...
         return reversed(entry_links)
@@ -101,10 +95,21 @@ class EntryWrapper:
     def html_tags(self):
         return [HTMLTag(t).pill() for t in self.tags]
 
+    def html_word_count(self, rounded=False):
+        rounded = 'is_rounded' if rounded else ''
+        return f"""
+        <div class="tags">
+            <div class="tags has-addons">
+                <a class="tag is-light {rounded}">Words</a>
+                <a class="tag is-dark {rounded}">{self.word_count}</a>
+            </div>
+        </div>
+        """
+
     @property
     def date(self):
         raw_date = self.entry.date
-        day, suffix = _get_day_with_suffix(raw_date.day)
+        day, suffix = get_day_with_suffix(raw_date.day)
         date_str = raw_date.strftime(f'%A, %B {day}{suffix} %Y')
         return date_str
 

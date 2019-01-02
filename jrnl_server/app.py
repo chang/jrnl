@@ -1,9 +1,10 @@
+import datetime
 import json
 
 from flask import Flask
 import flask
 
-from jrnl_helpers import JournalWrapper, EntryWrapper
+from wrappers import JournalWrapper, EntryWrapper, NoEntryError
 
 
 app = Flask(__name__)
@@ -25,14 +26,23 @@ def index():
 
 @app.route('/entry/<path:date>')
 def entry(date):
-    parsed_entry = EntryWrapper(journal.get_entry(date))
-    context = {
-        'date': parsed_entry.date,
-        'title': parsed_entry.title,
-        'body_paragraphs': parsed_entry.body_paragraphs,
-        'tags': parsed_entry.html_tags,
-        'num_words': parsed_entry.word_count,
-    }
+    journal.reload_if_changed()
+    try:
+        parsed_entry = EntryWrapper(journal.get_entry(date))
+        context = {
+            'date': parsed_entry.date,
+            'title': parsed_entry.title,
+            'body_paragraphs': parsed_entry.body_paragraphs,
+            'tags': parsed_entry.html_tags,
+            'num_words': parsed_entry.word_count,
+        }
+    except NoEntryError:
+        context = {
+            'date': date,
+            'title': 'Oops.',
+            'body_paragraphs': ["There's no entry for this day!"],
+        }
+
     return flask.render_template('entry.html', **context)
 
 
