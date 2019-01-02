@@ -1,3 +1,4 @@
+import os
 import logging
 
 import flask
@@ -6,6 +7,7 @@ import jrnl
 from conf import JRNL_CONFIG
 from elements import HTMLTag
 from helpers import load_journal, get_day_with_suffix
+
 
 
 class NoEntryError(Exception):
@@ -20,7 +22,7 @@ class JournalWrapper:
     def _load_journal(self):
         self.journal = load_journal()
         self.journal_dict = self.make_journal_dict(self.journal)
-        self._hash = self._get_journal_hash()
+        self._modified_time = self._get_modified_time()
 
     def get_entry(self, date):
         # TODO: Do some input validation here.
@@ -31,16 +33,14 @@ class JournalWrapper:
             logging.warning(msg)
             raise NoEntryError(msg)
 
-    def _get_journal_hash(self, journal_path=JRNL_CONFIG['journal']):
-        # Get the file hash of journal.txt
-        # TODO: Do something smarter than reading the whole file.
-        with open(journal_path, 'r') as fp:
-            return hash(fp.read())
+    def _get_modified_time(self):
+        journal_path = JRNL_CONFIG['journal']
+        return os.stat(journal_path).st_mtime
 
     def reload_if_changed(self):
-        current_hash = self._get_journal_hash()
-        if not self._hash == current_hash:
-            print('Journal file hash changed. Reloading.')
+        modified_time = self._get_modified_time()
+        if not self._modified_time == modified_time:
+            print('Journal modified. Reloading.')
             self._load_journal()
 
     @property
@@ -91,7 +91,6 @@ class EntryWrapper:
         unique_tags = list(set(self.entry.tags))
         return sorted(unique_tags)
 
-    @property
     def html_tags(self):
         return [HTMLTag(t).pill() for t in self.tags]
 
@@ -110,12 +109,12 @@ class EntryWrapper:
     def date(self):
         raw_date = self.entry.date
         day, suffix = get_day_with_suffix(raw_date.day)
-        date_str = raw_date.strftime(f'%A, %B {day}{suffix} %Y')
+        date_str = raw_date.strftime(f'%A, %B {day}<sup>{suffix}</sup> %Y')
         return date_str
 
     @property
     def word_count(self):
-        return len(self.entry.body.split(" "))
+        return len([w for w in self.entry.body.split(" ") if w])
 
     def _render_lists(self, paragraphs):
         def is_list_item(p):
@@ -135,18 +134,22 @@ class EntryWrapper:
 
         return rendered
 
-    def _render_tags(self, paragraphs):
+    @staticmethod
+    def _render_italics(self, paragraph):
+        pass
+
+    def _render_tags(self, paragraph):
         # Render tags in the body of the journal entry.
-        rendered = []
-        for p in paragraphs:
-            for tag in self.tags:
-                p = p.replace(tag, HTMLTag(tag).text())
-            rendered.append(p)
-        return rendered
+        for tag in self.tags:
+            paragraph = paragraph.replace(tag, HTMLTag(tag).text())
+        return paragraph
 
     @property
     def body_paragraphs(self):
+        def apply(func, paragraphs):
+            return [func(p) for p in paragraphs]
+
         paragraphs = self.entry.body.split('\n')
         paragraphs = self._render_lists(paragraphs)
-        paragraphs = self._render_tags(paragraphs)
+        paragraphs = apply(self._render_tags, paragraphs)
         return paragraphs

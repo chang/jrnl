@@ -5,6 +5,7 @@ A simple viewer for journal entries.
 
 ### TODO
 
+- Cards for journal entries on home screen
 - Render journal entries with statistics
     - # of words
     - tags
@@ -14,3 +15,6 @@ A simple viewer for journal entries.
     - date
     - fuzzy search
 - Add a "SFW" mode that hides all posts tagged with the "nsfw" tag.
+
+Just for fun:
+- Sentiment analysis on posts (over `n` words long?). See how my mood is.

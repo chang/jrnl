@@ -19,7 +19,7 @@
         <li>
           <a href="{{ entry_link }}">{{  entry  }}</a>
 
-          {% for tag in parsed_entry.html_tags %}
+          {% for tag in parsed_entry.html_tags() %}
             {{ tag|safe }}
           {% endfor %}
           <!-- {{ parsed_entry.html_word_count(rounded=True)|safe }} -->
