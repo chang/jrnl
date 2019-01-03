@@ -6,6 +6,7 @@
   <title>Eric's Journal</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css">
   <link rel="stylesheet" type="text/css" media="screen" href="{{ url_for('static', filename='main.css') }}" />
 </head>
@@ -17,6 +18,9 @@
       <ul>
         {% for entry, entry_link, parsed_entry in entry_links %}
         <li>
+          {% if parsed_entry.is_starred %}
+            <i class="fas fa-star" style="color: gold"></i>
+          {% endif %}
           <a href="{{ entry_link }}">{{  entry  }}</a>
 
           {% for tag in parsed_entry.html_tags() %}

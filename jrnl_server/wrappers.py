@@ -91,6 +91,10 @@ class EntryWrapper:
         unique_tags = list(set(self.entry.tags))
         return sorted(unique_tags)
 
+    @property
+    def is_starred(self):
+        return self.entry.starred
+
     def html_tags(self):
         return [HTMLTag(t).pill() for t in self.tags]
 
@@ -124,14 +128,13 @@ class EntryWrapper:
         for i, p in enumerate(paragraphs):
             if is_list_item(p):
                 unordered_list.append(p.lstrip('- '))
+                end_of_list = (i == len(paragraphs) - 1) or not is_list_item(paragraphs[i + 1])
+                if end_of_list:
+                    html_list = flask.render_template('_unordered_list.html', items=unordered_list)
+                    rendered.append(html_list)
+                    unordered_list = []
             else:
                 rendered.append(p)
-            end_of_list = (i == len(paragraphs) - 1) or not is_list_item(paragraphs[i + 1])
-            if end_of_list:
-                html_list = flask.render_template('_unordered_list.html', items=unordered_list)
-                rendered.append(html_list)
-                unordered_list = []
-
         return rendered
 
     @staticmethod
